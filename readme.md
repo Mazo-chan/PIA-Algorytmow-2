@@ -1,6 +1,6 @@
-# Miniprojekt 1 - Struktury Danych
+# Miniprojekt 2 - Algorytmy grafowe
 
-Projekt realizuje implementację sortowania przez kopcowanie, scalanie, introspektywne i przez kubełkowanie.
+Projekt realizuje implementację grafów ważonych wraz z algorytmami wyszukiwania najkrótszej ścieżki (ścieżki o najmniejszej wadze)
 
 ## Spis treści
 * [Wymagania](#1-wymagania)
@@ -41,15 +41,18 @@ Aby zbudować projekt, wykonaj poniższe kroki w terminalu:
 ```text
 ├── src/
 │   ├── main.cpp
-│   ├── IList.hpp
-│   ├── ArrayList.hpp
-│   ├── ArrayList.cpp
-│   ├── Menu.hpp
+│   ├── graph_list.hpp
+│   ├── graph_list.cpp
+│   ├── graph_matrix.hpp
+│   ├── graph_matrix.cpp
+│   ├── menu.hpp
 │   ├── data_prepare.hpp
 │   └── data_prepare.cpp
 ├── data/
-│   ├── projekt1_dane.csv
-│   └── clean_data.csv
+│   └── main_seed/
+│       ├──g00.csv
+│       ├── ...
+│       └──g99.csv
 ├── build/
 │   ├── binary
 │   └── ...
@@ -59,21 +62,20 @@ Aby zbudować projekt, wykonaj poniższe kroki w terminalu:
 
 ## 4. Szczegółowy Opis Plików i Modułów
 
-### A. Abstrakcja i Interfejsy
 
-#### `IList.hpp` (Abstrakcja)
-Abstrakcyjna klasa bazowa (czysty interfejs) wykorzystująca szablony (**template**). Definiuje kontrakt dla wszystkich struktur danych. Zawiera deklaracje metod wirtualnych do manipulacji danymi (dodawanie/usuwanie w różnych miejscach, wyszukiwanie) oraz metody pomocnicze do zarządzania rozmiarem i czyszczenia pamięci.
+### A. Moduły implementacyjne
 
-### B. Moduły implementacyjne
+#### `graph_list`
+`graph_list.hpp` / `graph_list.cpp` – Implementacja grafu jako listy sąsiedztwa oraz algorytmów Dijkstry i Bellmana-Forda do wyszukiwania najkrótszej ścieżki z zadanego wierzchołka do innych jako metody klasy.
 
-#### `ArrayList`
-`ArrayList.hpp` / `ArrayList.cpp` – Implementacja tablicy dynamicznej. Moduł ten zarządza ciągłym blokiem pamięci. Zawiera definicję klasy i szablonu oraz logikę relokacji pamięci (powiększanie rozmiaru) i przesuwania elementów przy operacjach wstawiania/usuwania.
+#### `graph_matrix`
+`graph_matrix.hpp` / `graph_matrix.cpp` – Implementacja grafu jako macierzy sąsiedztwa oraz algorytmów Dijkstry i Bellmana-Forda do wyszukiwania najkrótszej ścieżki z zadanego wierzchołka do innych jako metody klasy.
 
 
-### C. Logika Aplikacji i Interfejs Użytkownika
+### B. Logika Aplikacji i Interfejs Użytkownika
 
 #### `Menu`
-`Menu.hpp` / `Menu.cpp` – Warstwa prezentacji. Moduł odpowiada za wyświetlanie opcji w konsoli, walidację danych wprowadzanych przez użytkownika oraz wywoływanie odpowiednich metod z wybranych struktur danych. Pozwala na manualne testowanie funkcjonalności.
+`Menu.hpp` / `Menu.cpp` – Warstwa prezentacji. Moduł odpowiada za wyświetlanie opcji w konsoli, walidację danych wprowadzanych przez użytkownika oraz wywoływanie odpowiednich metod dla danego grafu. Pozwala na manualne testowanie funkcjonalności.
 
 #### `main.cpp`
 Minimalistyczny punkt startowy programu. Odpowiada za stworzenie instancji klasy `Menu` i uruchomienie jej głównej pętli. Nie zawiera logiki biznesowej ani zmiennych globalnych.
