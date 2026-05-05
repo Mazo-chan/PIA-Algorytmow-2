@@ -33,7 +33,7 @@ Aby zbudować projekt, wykonaj poniższe kroki w terminalu:
 
 4. Uruchom program:
    ```bash
-   ./mini_projekt_1
+   ./mini_projekt_2
    ```
 
 ## 3. Struktura Projektu
@@ -50,9 +50,9 @@ Aby zbudować projekt, wykonaj poniższe kroki w terminalu:
 │   └── data_prepare.cpp
 ├── data/
 │   └── main_seed/
-│       ├──g00.csv
-│       ├── ...
-│       └──g99.csv
+│           ├──seconadry_seed.csv
+│           ├── ...
+│           └──secondary_seed.csv
 ├── build/
 │   ├── binary
 │   └── ...
@@ -72,10 +72,15 @@ Aby zbudować projekt, wykonaj poniższe kroki w terminalu:
 `graph_matrix.hpp` / `graph_matrix.cpp` – Implementacja grafu jako macierzy sąsiedztwa oraz algorytmów Dijkstry i Bellmana-Forda do wyszukiwania najkrótszej ścieżki z zadanego wierzchołka do innych jako metody klasy.
 
 
+### B. Generowanie danych testowych
+
+### `data_prepare`
+`data_prepare.hpp` / `data_prepare.cpp` - Implementacja klasy generującej zbiór dancyh testowych. Przy zadanym głównym ziarnie generowane jest następne 100, za pomocą których tworzone są pliki .csv zawierające macierze sąsiedctwa dla grafu o ilości wierzchołków V. Możliwe jest ustalenie zakresu wag (dla dijkstry > 0, dla bellmana forda liczby całkowite).
+
 ### B. Logika Aplikacji i Interfejs Użytkownika
 
 #### `Menu`
-`Menu.hpp` / `Menu.cpp` – Warstwa prezentacji. Moduł odpowiada za wyświetlanie opcji w konsoli, walidację danych wprowadzanych przez użytkownika oraz wywoływanie odpowiednich metod dla danego grafu. Pozwala na manualne testowanie funkcjonalności.
+`Menu.hpp` / `Menu.cpp` – Warstwa prezentacji. Moduł odpowiada za wyświetlanie opcji w konsoli, walidację danych wprowadzanych przez użytkownika oraz wywoływanie odpowiednich metod dla danego grafu. Pozwala na manualne testowanie funkcjonalności. Tu zaimplementowany jest driver, który wczytuje grafy z wygenerowanych uprzednio plików, z opcją wczytania tylko danego rozmiaru, np. {10, 50, 100, 500, 1000} i z tego zapełnienia, np. {25%, 50%, 75%, pełne}. Przy czym upewniane jest, że graf nadal jest spójny. Połączenia są odrzucane na podstawie pod-ziarna danych.
 
 #### `main.cpp`
 Minimalistyczny punkt startowy programu. Odpowiada za stworzenie instancji klasy `Menu` i uruchomienie jej głównej pętli. Nie zawiera logiki biznesowej ani zmiennych globalnych.
