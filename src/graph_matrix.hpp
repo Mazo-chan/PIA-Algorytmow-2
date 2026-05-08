@@ -2,7 +2,7 @@
 #define GRAPH_MATRIX_HPP
 
 #include <vector>
-#include <limits>
+#include <climits>
 #include <string>
 
 class GraphMatrix {
@@ -10,7 +10,7 @@ private:
     int vertices;
     std::vector<std::vector<int>> adjacency_matrix;
     bool is_directed;
-    static constexpr int INF = 1e9;
+    static constexpr int INF = INT_MAX;
 
 public:
     GraphMatrix(int v, bool directed = false);
@@ -22,10 +22,8 @@ public:
     // Dijkstra's algorithm - for non-negative weights
     std::vector<int> dijkstra(int source);
     std::string dijkstraVerbose(int source);
-    
-    // Bellman-Ford algorithm - for any weights (including negative)
-    std::pair<bool, std::vector<int>> bellmanFord(int source);
-    std::string bellmanFordVerbose(int source);
+    std::vector<int> dijkstraPath(int source, int destination);
+    std::string dijkstraPathVerbose(int source, int destination);
     
     int getVertices() const;
     int getEdges() const;

@@ -66,16 +66,16 @@ Aby zbudować projekt, wykonaj poniższe kroki w terminalu:
 ### A. Moduły implementacyjne
 
 #### `graph_list`
-`graph_list.hpp` / `graph_list.cpp` – Implementacja grafu jako listy sąsiedztwa oraz algorytmów Dijkstry i Bellmana-Forda do wyszukiwania najkrótszej ścieżki z zadanego wierzchołka do innych jako metody klasy.
+`graph_list.hpp` / `graph_list.cpp` – Implementacja grafu jako listy sąsiedztwa oraz algorytm Dijkstry do wyszukiwania najkrótszej ścieżki z zadanego wierzchołka do innych jako metody klasy.
 
 #### `graph_matrix`
-`graph_matrix.hpp` / `graph_matrix.cpp` – Implementacja grafu jako macierzy sąsiedztwa oraz algorytmów Dijkstry i Bellmana-Forda do wyszukiwania najkrótszej ścieżki z zadanego wierzchołka do innych jako metody klasy.
+`graph_matrix.hpp` / `graph_matrix.cpp` – Implementacja grafu jako macierzy sąsiedztwa oraz algorytm Dijkstry do wyszukiwania najkrótszej ścieżki z zadanego wierzchołka do innych jako metody klasy.
 
 
 ### B. Generowanie danych testowych
 
 ### `data_prepare`
-`data_prepare.hpp` / `data_prepare.cpp` - Implementacja klasy generującej zbiór dancyh testowych. Przy zadanym głównym ziarnie generowane jest następne 100, za pomocą których tworzone są pliki .csv zawierające macierze sąsiedctwa dla grafu o ilości wierzchołków V. Możliwe jest ustalenie zakresu wag (dla dijkstry > 0, dla bellmana forda liczby całkowite).
+`data_prepare.hpp` / `data_prepare.cpp` - Implementacja klasy generującej zbiór dancyh testowych. Przy zadanym głównym ziarnie generowane jest następne 100, za pomocą których tworzone są pliki .csv zawierające macierze sąsiedctwa dla grafu o ilości wierzchołków V. Możliwe jest ustalenie zakresu wag (dla dijkstry > 0)
 
 ### B. Logika Aplikacji i Interfejs Użytkownika
 

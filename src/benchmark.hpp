@@ -31,15 +31,6 @@ public:
         bool use_matrix = false
     );
     
-    // Benchmark Bellman-Ford on multiple files
-    BenchmarkResult benchmarkBellmanFord(
-        int num_vertices,
-        int density_percent,
-        int num_files,
-        int source_vertex,
-        bool use_matrix = false
-    );
-    
     // Print benchmark results
     void printResults(const BenchmarkResult& result, const std::string& algorithm_name) const;
     

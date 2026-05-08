@@ -13,7 +13,6 @@ private:
     std::unique_ptr<GraphList> graph_list;
     std::unique_ptr<GraphMatrix> graph_matrix;
     std::unique_ptr<DataPrepare> data_prepare;
-    std::unique_ptr<Benchmark> benchmark;
     
     bool running;
     
@@ -33,12 +32,10 @@ private:
     
     // Algorithm testing
     void testDijkstra();
-    void testBellmanFord();
     
     // Benchmarking
     void runBenchmark();
-    void benchmarkDijkstra();
-    void benchmarkBellmanFord();
+    void benchmarkDijkstra(const std::string& data_dir);
     
     // Data generation
     void generateTestData();

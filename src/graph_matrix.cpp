@@ -81,56 +81,68 @@ std::string GraphMatrix::dijkstraVerbose(int source) {
     return oss.str();
 }
 
-std::pair<bool, std::vector<int>> GraphMatrix::bellmanFord(int source) {
+std::vector<int> GraphMatrix::dijkstraPath(int source, int destination) {
     std::vector<int> distance(vertices, INF);
+    std::vector<int> parent(vertices, -1);
+    std::vector<bool> visited(vertices, false);
+    
     distance[source] = 0;
     
-    // Relax edges vertices - 1 times
-    for (int i = 0; i < vertices - 1; i++) {
-        for (int u = 0; u < vertices; u++) {
-            if (distance[u] != INF) {
-                for (int v = 0; v < vertices; v++) {
-                    if (adjacency_matrix[u][v] != INF &&
-                        distance[u] + adjacency_matrix[u][v] < distance[v]) {
-                        distance[v] = distance[u] + adjacency_matrix[u][v];
-                    }
-                }
+    for (int count = 0; count < vertices - 1; count++) {
+        int u = -1;
+        int min_dist = INF;
+        
+        for (int v = 0; v < vertices; v++) {
+            if (!visited[v] && distance[v] < min_dist) {
+                min_dist = distance[v];
+                u = v;
+            }
+        }
+        
+        if (u == -1 || distance[u] == INF) break;
+        visited[u] = true;
+        
+        for (int v = 0; v < vertices; v++) {
+            if (!visited[v] && adjacency_matrix[u][v] != INF &&
+                distance[u] + adjacency_matrix[u][v] < distance[v]) {
+                distance[v] = distance[u] + adjacency_matrix[u][v];
+                parent[v] = u;
             }
         }
     }
     
-    // Check for negative cycles
-    for (int u = 0; u < vertices; u++) {
-        if (distance[u] != INF) {
-            for (int v = 0; v < vertices; v++) {
-                if (adjacency_matrix[u][v] != INF &&
-                    distance[u] + adjacency_matrix[u][v] < distance[v]) {
-                    return {false, distance}; // Negative cycle detected
-                }
-            }
-        }
+    // Reconstruct path
+    std::vector<int> path;
+    if (distance[destination] == INF) {
+        return path;  // No path exists
     }
     
-    return {true, distance};
+    int current = destination;
+    while (current != -1) {
+        path.push_back(current);
+        current = parent[current];
+    }
+    
+    std::reverse(path.begin(), path.end());
+    return path;
 }
 
-std::string GraphMatrix::bellmanFordVerbose(int source) {
+std::string GraphMatrix::dijkstraPathVerbose(int source, int destination) {
     std::ostringstream oss;
-    auto [has_solution, distances] = bellmanFord(source);
+    auto path = dijkstraPath(source, destination);
     
-    if (!has_solution) {
-        oss << "Bellman-Ford from vertex " << source << ":\n";
-        oss << "  NEGATIVE CYCLE DETECTED - algorithm failed\n";
+    if (path.empty()) {
+        oss << "No path exists from " << source << " to " << destination << "\n";
     } else {
-        oss << "Bellman-Ford from vertex " << source << ":\n";
-        for (int i = 0; i < vertices; i++) {
-            oss << "  To " << i << ": ";
-            if (distances[i] == INF) {
-                oss << "INF (unreachable)\n";
-            } else {
-                oss << distances[i] << "\n";
+        oss << "Shortest path from " << source << " to " << destination << ":\n";
+        oss << "  ";
+        for (size_t i = 0; i < path.size(); i++) {
+            oss << path[i];
+            if (i < path.size() - 1) {
+                oss << " -> ";
             }
         }
+        oss << "\n";
     }
     
     return oss.str();

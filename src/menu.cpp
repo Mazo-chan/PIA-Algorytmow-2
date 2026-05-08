@@ -7,8 +7,7 @@ namespace fs = std::filesystem;
 
 Menu::Menu() 
     : running(true), current_graph_type(NONE), current_vertices(0), 
-      data_prepare(std::make_unique<DataPrepare>(12345)),
-      benchmark(std::make_unique<Benchmark>()) {}
+      data_prepare(std::make_unique<DataPrepare>(12345)) {}
 
 Menu::~Menu() {}
 
@@ -55,8 +54,7 @@ void Menu::displayGraphOperationsMenu() {
 void Menu::displayAlgorithmMenu() {
     std::cout << "\n===== SELECT ALGORITHM =====\n";
     std::cout << "1. Dijkstra's algorithm\n";
-    std::cout << "2. Bellman-Ford algorithm\n";
-    std::cout << "3. Back\n";
+    std::cout << "2. Back\n";
     std::cout << "============================\n";
 }
 
@@ -230,16 +228,12 @@ void Menu::testAlgorithms() {
     }
     
     displayAlgorithmMenu();
-    int choice = getValidInteger("Select algorithm: ", 1, 3);
+    int choice = getValidInteger("Select algorithm: ", 1, 2);
     
-    if (choice == 3) return;
-    
-    int source = getValidInteger("Enter source vertex: ", 0, current_vertices - 1);
+    if (choice == 2) return;
     
     if (choice == 1) {
         testDijkstra();
-    } else if (choice == 2) {
-        testBellmanFord();
     }
 }
 
@@ -253,21 +247,19 @@ void Menu::testDijkstra() {
     }
 }
 
-void Menu::testBellmanFord() {
-    int source = getValidInteger("Enter source vertex: ", 0, current_vertices - 1);
-    
-    if (current_graph_type == LIST && graph_list) {
-        std::cout << graph_list->bellmanFordVerbose(source);
-    } else if (current_graph_type == MATRIX && graph_matrix) {
-        std::cout << graph_matrix->bellmanFordVerbose(source);
-    }
-}
+
 
 void Menu::generateTestData() {
     std::cout << "Generating test data files...\n";
     int num_seeds = getValidInteger("Enter number of seeds to generate (default 10): ", 1, 1000);
+    std::string dir = getValidString("Enter directory to save data (default 'data/main_seed'): ");
+    if (dir.empty()) {
+        dir = "data/main_seed";
+    }
     
+     // Create directory if it doesn't exist
     try {
+        std::filesystem::create_directories(dir);
         data_prepare->generateTestData(num_seeds);
         std::cout << "Test data generation completed!\n";
     } catch (const std::exception& e) {
@@ -278,33 +270,32 @@ void Menu::generateTestData() {
 void Menu::displayBenchmarkMenu() {
     std::cout << "\n===== BENCHMARK MENU =====\n";
     std::cout << "1. Benchmark Dijkstra\n";
-    std::cout << "2. Benchmark Bellman-Ford\n";
-    std::cout << "3. Back\n";
+    std::cout << "2. Back\n";
     std::cout << "==========================\n";
 }
 
 void Menu::runBenchmark() {
     displayBenchmarkMenu();
-    int choice = getValidInteger("Select benchmark: ", 1, 3);
+    int choice = getValidInteger("Select benchmark: ", 1, 2);
     
-    if (choice == 3) return;
+    if (choice == 2) return;
     
-    // int vertices = getValidInteger("Enter number of vertices: ", 1, 1000);
-    // int density = getValidInteger("Enter density percentage (25/50/75/100): ", 1, 100);
-    // int num_files = getValidInteger("Enter number of files to test: ", 1, 1000);
-    // int source = getValidInteger("Enter source vertex: ", 0, vertices - 1);
-    // int rep_type = getValidInteger("Use List (1) or Matrix (2): ", 1, 2);
+    std::string data_dir = getValidString("Enter benchmark data folder (default 'data/main_seed'): ");
+    if (data_dir.empty()) {
+        data_dir = "data/main_seed";
+    }
     
-    // bool use_matrix = (rep_type == 2);
+    if (!fs::exists(data_dir)) {
+        std::cout << "Data folder not found: " << data_dir << "\n";
+        return;
+    }
     
     if (choice == 1) {
-        benchmarkDijkstra();
-    } else if (choice == 2) {
-        benchmarkBellmanFord();
+        benchmarkDijkstra(data_dir);
     }
 }
 
-void Menu::benchmarkDijkstra() {
+void Menu::benchmarkDijkstra(const std::string& data_dir) {
     int vertices = getValidInteger("Enter number of vertices: ", 1, 1000);
     int density = getValidInteger("Enter density percentage (25/50/75/100): ", 1, 100);
     int num_files = getValidInteger("Enter number of files to test: ", 1, 1000);
@@ -316,31 +307,15 @@ void Menu::benchmarkDijkstra() {
     std::cout << "\nRunning Dijkstra benchmark...\n";
     
     try {
-        auto result = benchmark->benchmarkDijkstra(vertices, density, num_files, source, use_matrix);
-        benchmark->printResults(result, "Dijkstra's Algorithm");
+        auto benchmark_instance = std::make_unique<Benchmark>(data_dir);
+        auto result = benchmark_instance->benchmarkDijkstra(vertices, density, num_files, source, use_matrix);
+        benchmark_instance->printResults(result, "Dijkstra's Algorithm");
     } catch (const std::exception& e) {
         std::cout << "Error during benchmark: " << e.what() << "\n";
     }
 }
 
-void Menu::benchmarkBellmanFord() {
-    int vertices = getValidInteger("Enter number of vertices: ", 1, 1000);
-    int density = getValidInteger("Enter density percentage (25/50/75/100): ", 1, 100);
-    int num_files = getValidInteger("Enter number of files to test: ", 1, 1000);
-    int source = getValidInteger("Enter source vertex: ", 0, vertices - 1);
-    int rep_type = getValidInteger("Use List (1) or Matrix (2): ", 1, 2);
-    
-    bool use_matrix = (rep_type == 2);
-    
-    std::cout << "\nRunning Bellman-Ford benchmark...\n";
-    
-    try {
-        auto result = benchmark->benchmarkBellmanFord(vertices, density, num_files, source, use_matrix);
-        benchmark->printResults(result, "Bellman-Ford Algorithm");
-    } catch (const std::exception& e) {
-        std::cout << "Error during benchmark: " << e.what() << "\n";
-    }
-}
+
 
 int Menu::getValidInteger(const std::string& prompt, int min, int max) {
     int choice;

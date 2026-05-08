@@ -2,7 +2,7 @@
 #define GRAPH_LIST_HPP
 
 #include <vector>
-#include <limits>
+#include <climits>
 #include <string>
 #include <unordered_map>
 
@@ -27,10 +27,8 @@ public:
     // Dijkstra's algorithm - for non-negative weights
     std::vector<int> dijkstra(int source);
     std::string dijkstraVerbose(int source);
-    
-    // Bellman-Ford algorithm - for any weights (including negative)
-    std::pair<bool, std::vector<int>> bellmanFord(int source);
-    std::string bellmanFordVerbose(int source);
+    std::vector<int> dijkstraPath(int source, int destination);
+    std::string dijkstraPathVerbose(int source, int destination);
     
     int getVertices() const;
     int getEdges() const;
