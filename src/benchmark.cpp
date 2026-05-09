@@ -49,7 +49,7 @@ BenchmarkResult Benchmark::benchmarkDijkstra(
                 g.loadFromMatrix(matrix);
                 
                 auto start = std::chrono::high_resolution_clock::now();
-                auto distances = g.dijkstra(source_vertex);
+                auto result_data = g.dijkstra(source_vertex);
                 auto end = std::chrono::high_resolution_clock::now();
                 
                 long long elapsed_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
@@ -62,7 +62,7 @@ BenchmarkResult Benchmark::benchmarkDijkstra(
                 g.loadFromMatrix(matrix);
                 
                 auto start = std::chrono::high_resolution_clock::now();
-                auto distances = g.dijkstra(source_vertex);
+                auto result_data = g.dijkstra(source_vertex);
                 auto end = std::chrono::high_resolution_clock::now();
                 
                 long long elapsed_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();

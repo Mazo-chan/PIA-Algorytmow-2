@@ -5,10 +5,24 @@
 #include <algorithm>
 #include <sstream>
 
+struct HeapNode {
+    int distance;
+    int vertex;
+    std::vector<int> path;
+    
+    bool operator>(const HeapNode& other) const {
+        return distance > other.distance;
+    }
+};
+
 GraphList::GraphList(int v, bool directed)
     : vertices(v), adjacency_list(v), is_directed(directed) {}
 
 GraphList::~GraphList() {}
+
+void GraphList::setDirected(bool directed) {
+    is_directed = directed;
+}
 
 void GraphList::addEdge(int from, int to, int weight) {
     if (from < 0 || from >= vertices || to < 0 || to >= vertices) {
@@ -35,118 +49,78 @@ void GraphList::removeEdge(int from, int to) {
     }
 }
 
-std::vector<int> GraphList::dijkstra(int source) {
-    std::vector<int> distance(vertices, INT_MAX);
+DijkstraResult GraphList::dijkstra(int source) {
+    std::vector<std::pair<int, std::vector<int>>> results(vertices);
     std::vector<bool> visited(vertices, false);
     
-    distance[source] = 0;
+    std::priority_queue<HeapNode, std::vector<HeapNode>, std::greater<HeapNode>> pq;
     
-    for (int count = 0; count < vertices - 1; count++) {
-        int u = -1;
-        int min_dist = INT_MAX;
+    // Initialize all distances to INT_MAX
+    for (int i = 0; i < vertices; i++) {
+        results[i] = {INT_MAX, {}};
+    }
+    
+    results[source] = {0, {source}};
+    pq.push({0, source, {source}});
+    
+    while (!pq.empty()) {
+        HeapNode current = pq.top();
+        pq.pop();
         
-        for (int v = 0; v < vertices; v++) {
-            if (!visited[v] && distance[v] < min_dist) {
-                min_dist = distance[v];
-                u = v;
-            }
+        int u = current.vertex;
+        
+        if (visited[u]) {
+            continue;
         }
-        
-        if (u == -1) break;
         visited[u] = true;
         
         for (const auto& edge : adjacency_list[u]) {
             int v = edge.to;
             int weight = edge.weight;
+            int newDistance = current.distance + weight;
             
-        if (!visited[v] && distance[u] != INT_MAX &&
-                distance[u] + weight < distance[v]) {
-                distance[v] = distance[u] + weight;
+            if (!visited[v] && newDistance < results[v].first) {
+                results[v].first = newDistance;
+                results[v].second = current.path;
+                results[v].second.push_back(v);
+                
+                pq.push({newDistance, v, results[v].second});
             }
         }
     }
     
-    return distance;
+    return {results};
 }
 
 std::string GraphList::dijkstraVerbose(int source) {
     std::ostringstream oss;
-    auto distances = dijkstra(source);
+    auto result = dijkstra(source);
     
     oss << "Dijkstra from vertex " << source << ":\n";
     for (int i = 0; i < vertices; i++) {
         oss << "  To " << i << ": ";
-        if (distances[i] == INT_MAX) {
+        if (result.results[i].first == INT_MAX) {
             oss << "INF (unreachable)\n";
         } else {
-            oss << distances[i] << "\n";
+            oss << result.results[i].first <<  "\n";
         }
     }
     
     return oss.str();
 }
 
-std::vector<int> GraphList::dijkstraPath(int source, int destination) {
-    std::vector<int> distance(vertices, INT_MAX);
-    std::vector<int> parent(vertices, -1);
-    std::vector<bool> visited(vertices, false);
-    
-    distance[source] = 0;
-    
-    for (int count = 0; count < vertices - 1; count++) {
-        int u = -1;
-        int min_dist = INT_MAX;
-        
-        for (int v = 0; v < vertices; v++) {
-            if (!visited[v] && distance[v] < min_dist) {
-                min_dist = distance[v];
-                u = v;
-            }
-        }
-        
-        if (u == -1) break;
-        visited[u] = true;
-        
-        for (const auto& edge : adjacency_list[u]) {
-            int v = edge.to;
-            int weight = edge.weight;
-            
-            if (!visited[v] && distance[u] != INT_MAX &&
-                distance[u] + weight < distance[v]) {
-                distance[v] = distance[u] + weight;
-                parent[v] = u;
-            }
-        }
-    }
-    
-    // Reconstruct path
-    std::vector<int> path;
-    if (distance[destination] == INT_MAX) {
-        return path;  // No path exists
-    }
-    
-    int current = destination;
-    while (current != -1) {
-        path.push_back(current);
-        current = parent[current];
-    }
-    
-    std::reverse(path.begin(), path.end());
-    return path;
-}
-
 std::string GraphList::dijkstraPathVerbose(int source, int destination) {
     std::ostringstream oss;
-    auto path = dijkstraPath(source, destination);
+    auto result = dijkstra(source);
     
-    if (path.empty()) {
+    if (result.results[destination].first == INT_MAX) {
         oss << "No path exists from " << source << " to " << destination << "\n";
     } else {
         oss << "Shortest path from " << source << " to " << destination << ":\n";
         oss << "  ";
-        for (size_t i = 0; i < path.size(); i++) {
-            oss << path[i];
-            if (i < path.size() - 1) {
+        for (size_t i = 0; i < result.results[destination].second.size(); i++) {
+            oss << result.results[destination].second[i];
+            if (i < result.results[destination].second.size() - 1) {
                 oss << " -> ";
             }
         }
@@ -193,6 +167,7 @@ void GraphList::print() const {
 }
 
 void GraphList::loadFromMatrix(const std::vector<std::vector<int>>& matrix) {
+    setDirected(true);
     for (size_t i = 0; i < matrix.size(); i++) {
         for (size_t j = 0; j < matrix[i].size(); j++) {
             if (matrix[i][j] != 0 && matrix[i][j] != INT_MAX) {
@@ -200,4 +175,5 @@ void GraphList::loadFromMatrix(const std::vector<std::vector<int>>& matrix) {
             }
         }
     }
+    setDirected(false);
 }

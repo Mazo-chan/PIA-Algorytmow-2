@@ -18,7 +18,7 @@ void Menu::run() {
 void Menu::mainLoop() {
     while (running) {
         displayMainMenu();
-        int choice = getValidInteger("Select option: ", 1, 6);
+        int choice = getValidInteger("Select option: ", 1, 7);
         handleMainMenuChoice(choice);
     }
 }
@@ -26,11 +26,12 @@ void Menu::mainLoop() {
 void Menu::displayMainMenu() {
     std::cout << "\n========== MAIN MENU ==========\n";
     std::cout << "1. Create a new graph\n";
-    std::cout << "2. Load graph from file\n";
-    std::cout << "3. Test algorithms\n";
-    std::cout << "4. Benchmark algorithms\n";
-    std::cout << "5. Generate test data\n";
-    std::cout << "6. Exit\n";
+    std::cout << "2. Manage existing graph\n";
+    std::cout << "3. Load graph from file\n";
+    std::cout << "4. Test algorithms\n";
+    std::cout << "5. Benchmark algorithms\n";
+    std::cout << "6. Generate test data\n";
+    std::cout << "7. Exit\n";
     std::cout << "===============================\n";
 }
 
@@ -44,17 +45,19 @@ void Menu::displayGraphTypeMenu() {
 void Menu::displayGraphOperationsMenu() {
     std::cout << "\n===== GRAPH OPERATIONS =====\n";
     std::cout << "1. Add edge\n";
-    std::cout << "2. Display graph\n";
-    std::cout << "3. Show graph info\n";
-    std::cout << "4. Test algorithms\n";
-    std::cout << "5. Back to main menu\n";
+    std::cout << "2. Remove edge\n";
+    std::cout << "3. Display graph\n";
+    std::cout << "4. Show graph info\n";
+    std::cout << "5. Test algorithms\n";
+    std::cout << "6. Back to main menu\n";
     std::cout << "============================\n";
 }
 
 void Menu::displayAlgorithmMenu() {
     std::cout << "\n===== SELECT ALGORITHM =====\n";
     std::cout << "1. Dijkstra's algorithm\n";
-    std::cout << "2. Back\n";
+    std::cout << "2. Dijkstra's algorithm with path\n";
+    std::cout << "3. Back to graph operations\n";
     std::cout << "============================\n";
 }
 
@@ -64,18 +67,21 @@ void Menu::handleMainMenuChoice(int choice) {
             createGraph();
             break;
         case 2:
-            loadGraphFromFile();
+            manualGraphOperations();
             break;
         case 3:
-            testAlgorithms();
+            loadGraphFromFile();
             break;
         case 4:
-            runBenchmark();
+            testAlgorithms();
             break;
         case 5:
+            runBenchmark();
+            break;
+        case 6: 
             generateTestData();
             break;
-        case 6:
+        case 7:
             running = false;
             std::cout << "Exiting program. Goodbye!\n";
             break;
@@ -102,39 +108,44 @@ void Menu::handleGraphTypeChoice(int choice) {
     }
 }
 
-void Menu::handleOperationChoice(int choice) {
+void Menu::manualGraphOperations() {
     if (current_graph_type == NONE) {
         std::cout << "No graph created. Please create a graph first.\n";
         return;
     }
     
-    displayGraphOperationsMenu();
-    int op_choice = getValidInteger("Select operation: ", 1, 5);
-    
-    switch (op_choice) {
-        case 1:
-            addEdgeToGraph();
-            break;
-        case 2:
-            displayGraphInfo();
-            break;
-        case 3: {
-            if (current_graph_type == LIST && graph_list) {
-                std::cout << "Vertices: " << graph_list->getVertices() << "\n";
-                std::cout << "Edges: " << graph_list->getEdges() << "\n";
-            } else if (current_graph_type == MATRIX && graph_matrix) {
-                std::cout << "Vertices: " << graph_matrix->getVertices() << "\n";
-                std::cout << "Edges: " << graph_matrix->getEdges() << "\n";
+    while (true) {
+        displayGraphOperationsMenu();
+        int op_choice = getValidInteger("Select operation: ", 1, 6);
+        
+        switch (op_choice) {
+            case 1:
+                addEdgeToGraph();
+                break;
+            case 2:
+                removeEdgeFromGraph();
+                break;
+            case 3:
+                displayGraphInfo();
+                break;
+            case 4: {
+                if (current_graph_type == LIST && graph_list) {
+                    std::cout << "Vertices: " << graph_list->getVertices() << "\n";
+                    std::cout << "Edges: " << graph_list->getEdges() << "\n";
+                } else if (current_graph_type == MATRIX && graph_matrix) {
+                    std::cout << "Vertices: " << graph_matrix->getVertices() << "\n";
+                    std::cout << "Edges: " << graph_matrix->getEdges() << "\n";
+                }
+                break;
             }
-            break;
+            case 5:
+                testAlgorithms();
+                break;
+            case 6:
+                return;
+            default:
+                std::cout << "Invalid choice!\n";
         }
-        case 4:
-            testAlgorithms();
-            break;
-        case 5:
-            break;
-        default:
-            std::cout << "Invalid choice!\n";
     }
 }
 
@@ -208,6 +219,23 @@ void Menu::addEdgeToGraph() {
     }
 }
 
+void Menu::removeEdgeFromGraph() {
+    if (current_graph_type == NONE) {
+        std::cout << "No graph created. Please create a graph first.\n";
+        return;
+    }
+    
+    int from = getValidInteger("Enter source vertex: ", 0, current_vertices - 1);
+    int to = getValidInteger("Enter destination vertex: ", 0, current_vertices - 1);
+    
+    if (current_graph_type == LIST && graph_list) {
+        graph_list->removeEdge(from, to);
+        std::cout << "Edge removed: " << from << " -> " << to << "\n";
+    } else if (current_graph_type == MATRIX && graph_matrix) {
+        graph_matrix->removeEdge(from, to);
+        std::cout << "Edge removed: " << from << " -> " << to << "\n";
+    }
+}
 void Menu::displayGraphInfo() {
     if (current_graph_type == NONE) {
         std::cout << "No graph created.\n";
@@ -228,12 +256,19 @@ void Menu::testAlgorithms() {
     }
     
     displayAlgorithmMenu();
-    int choice = getValidInteger("Select algorithm: ", 1, 2);
+    int choice = getValidInteger("Select algorithm: ", 1, 3);
     
-    if (choice == 2) return;
-    
-    if (choice == 1) {
-        testDijkstra();
+    switch(choice) {
+        case 1:
+            testDijkstra();
+            break;
+        case 2:
+            testPathDijkstra();
+            break;
+        case 3:
+            return;
+        default:
+            std::cout << "Invalid choice!\n";
     }
 }
 
@@ -247,6 +282,16 @@ void Menu::testDijkstra() {
     }
 }
 
+void Menu::testPathDijkstra() {
+    int source = getValidInteger("Enter source vertex: ", 0, current_vertices - 1);
+    int destination = getValidInteger("Enter destination vertex: ", 0, current_vertices - 1);
+    
+    if (current_graph_type == LIST && graph_list) {
+        std::cout << graph_list->dijkstraPathVerbose(source, destination);
+    } else if (current_graph_type == MATRIX && graph_matrix) {
+        std::cout << graph_matrix->dijkstraPathVerbose(source, destination);
+    }
+}
 
 
 void Menu::generateTestData() {
@@ -256,7 +301,7 @@ void Menu::generateTestData() {
     if (dir.empty()) {
         dir = "data/main_seed";
     }
-    
+    std::unique_ptr data_prepare = std::make_unique<DataPrepare>(12345, dir);
      // Create directory if it doesn't exist
     try {
         std::filesystem::create_directories(dir);

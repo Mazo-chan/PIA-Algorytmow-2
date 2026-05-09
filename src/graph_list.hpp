@@ -4,7 +4,8 @@
 #include <vector>
 #include <climits>
 #include <string>
-#include <unordered_map>
+#include <utility>
+#include "dijkstra_result.hpp"
 
 struct Edge {
     int to;
@@ -21,13 +22,13 @@ public:
     GraphList(int v, bool directed = false);
     ~GraphList();
     
+    void setDirected(bool directed);
     void addEdge(int from, int to, int weight);
     void removeEdge(int from, int to);
     
-    // Dijkstra's algorithm - for non-negative weights
-    std::vector<int> dijkstra(int source);
+    // Dijkstra's algorithm - returns (weight, path) pairs for all vertices
+    DijkstraResult dijkstra(int source);
     std::string dijkstraVerbose(int source);
-    std::vector<int> dijkstraPath(int source, int destination);
     std::string dijkstraPathVerbose(int source, int destination);
     
     int getVertices() const;

@@ -27,12 +27,13 @@ private:
     void createGraph();
     void loadGraphFromFile();
     void addEdgeToGraph();
+    void removeEdgeFromGraph();
     void displayGraphInfo();
     void testAlgorithms();
     
     // Algorithm testing
     void testDijkstra();
-    
+    void testPathDijkstra();
     // Benchmarking
     void runBenchmark();
     void benchmarkDijkstra(const std::string& data_dir);
@@ -57,8 +58,8 @@ public:
     void mainLoop();
     void handleMainMenuChoice(int choice);
     void handleGraphTypeChoice(int choice);
-    void handleOperationChoice(int choice);
     void handleAlgorithmChoice(int choice);
+    void manualGraphOperations();
 };
 
 #endif // MENU_HPP
