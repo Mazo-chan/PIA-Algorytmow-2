@@ -2,7 +2,6 @@
 #define GRAPH_MATRIX_HPP
 
 #include <vector>
-#include <climits>
 #include <string>
 #include <utility>
 #include "dijkstra_result.hpp"

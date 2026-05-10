@@ -2,7 +2,6 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include <cmath>
 #include <algorithm>
 #include <queue>
 
