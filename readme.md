@@ -41,18 +41,22 @@ Aby zbudować projekt, wykonaj poniższe kroki w terminalu:
 ```text
 ├── src/
 │   ├── main.cpp
+│   ├── dijkstra_result.hpp
 │   ├── graph_list.hpp
 │   ├── graph_list.cpp
 │   ├── graph_matrix.hpp
 │   ├── graph_matrix.cpp
 │   ├── menu.hpp
+│   ├── menu.cpp
+│   ├── benchmark.hpp
+│   ├── benchmark.cpp
 │   ├── data_prepare.hpp
 │   └── data_prepare.cpp
 ├── data/
-│   └── main_seed/
-│           ├──seconadry_seed.csv
+│   └── name/
+│           ├──graph_vertices_fill_seednumber.csv
 │           ├── ...
-│           └──secondary_seed.csv
+│           └──graph_vertices_fill_seednumber.csv
 ├── build/
 │   ├── binary
 │   └── ...
@@ -81,6 +85,9 @@ Aby zbudować projekt, wykonaj poniższe kroki w terminalu:
 
 #### `Menu`
 `Menu.hpp` / `Menu.cpp` – Warstwa prezentacji. Moduł odpowiada za wyświetlanie opcji w konsoli, walidację danych wprowadzanych przez użytkownika oraz wywoływanie odpowiednich metod dla danego grafu. Pozwala na manualne testowanie funkcjonalności. Tu zaimplementowany jest driver, który wczytuje grafy z wygenerowanych uprzednio plików, z opcją wczytania tylko danego rozmiaru, np. {10, 50, 100, 500, 1000} i z tego zapełnienia, np. {25%, 50%, 75%, pełne}. Przy czym upewniane jest, że graf nadal jest spójny. Połączenia są odrzucane na podstawie pod-ziarna danych.
+
+#### `benchmark`
+`benchmark.hpp` / `benchmark.cpp` – Algorytmy testowania
 
 #### `main.cpp`
 Minimalistyczny punkt startowy programu. Odpowiada za stworzenie instancji klasy `Menu` i uruchomienie jej głównej pętli. Nie zawiera logiki biznesowej ani zmiennych globalnych.

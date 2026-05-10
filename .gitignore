@@ -10,3 +10,4 @@
 *.txt
 results/results.xlsx
 results/wykres.png
+/results

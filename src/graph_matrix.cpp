@@ -51,6 +51,7 @@ void GraphMatrix::removeEdge(int from, int to) {
 }
 
 DijkstraResult GraphMatrix::dijkstra(int source) {
+    // pretty much the same as in GraphList
     std::vector<std::pair<int, std::vector<int>>> results(vertices);
     std::vector<bool> visited(vertices, false);
     
@@ -74,7 +75,8 @@ DijkstraResult GraphMatrix::dijkstra(int source) {
             continue;
         }
         visited[u] = true;
-        
+        // Explore neighbors
+        // Here we get the V^2 logV 
         for (int v = 0; v < vertices; v++) {
             if (!visited[v] && adjacency_matrix[u][v] != INF) {
                 int newDistance = current.distance + adjacency_matrix[u][v];

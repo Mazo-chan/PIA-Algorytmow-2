@@ -17,7 +17,7 @@ DataPrepare::DataPrepare(unsigned int seed, const std::string& output_directory)
 DataPrepare::~DataPrepare() {}
 
 unsigned int DataPrepare::generateNextSeed(unsigned int seed) {
-    // Linear Congruential Generator
+    // Deterministic seed generator
     const unsigned int a = 1103515245;
     const unsigned int c = 12345;
     const unsigned int m = 2147483648;
@@ -65,6 +65,8 @@ std::vector<std::vector<int>> DataPrepare::generateAdjacencyMatrix(
     std::uniform_int_distribution<int> weight_dist(min_weight, max_weight);
     std::uniform_real_distribution<double> probability_dist(0.0, 1.0);
     
+    // Initialize an empty adjacency matrix
+    // 0 means no edge, positive weight means edge exists
     std::vector<std::vector<int>> matrix(vertices, std::vector<int>(vertices, 0));
     
     // Calculate target number of edges
@@ -72,12 +74,15 @@ std::vector<std::vector<int>> DataPrepare::generateAdjacencyMatrix(
     int target_edges = (max_edges * density_percent) / 100;
     
     // Add edges randomly
+    // As long as we didn't reach the target number of edges, keep adding
     int added_edges = 0;
     for (int i = 0; i < vertices && added_edges < target_edges; i++) {
         for (int j = i + 1; j < vertices && added_edges < target_edges; j++) {
+            // Randomly decide whether to add an edge based on the desired density
             double prob = probability_dist(rng);
             double edge_probability = static_cast<double>(density_percent) / 100.0;
             
+            // If the random probability is less than the edge probability, add an edge
             if (prob < edge_probability) {
                 int weight = weight_dist(rng);
                 matrix[i][j] = weight;
@@ -98,6 +103,7 @@ bool DataPrepare::ensureConnectivity(std::vector<std::vector<int>>& matrix, int 
     std::uniform_int_distribution<int> weight_dist(1, 100);
     
     // BFS to check connectivity
+    // We start from 0 and simply traverse the graph to see if we can reach all vertices
     auto isConnected = [&]() {
         std::vector<bool> visited(vertices, false);
         std::queue<int> q;

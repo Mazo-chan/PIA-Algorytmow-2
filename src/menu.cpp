@@ -306,7 +306,6 @@ void Menu::generateTestData() {
     try {
         std::filesystem::create_directories(dir);
         data_prepare->generateTestData(num_seeds);
-        std::cout << "Test data generation completed!\n";
     } catch (const std::exception& e) {
         std::cout << "Error generating test data: " << e.what() << "\n";
     }

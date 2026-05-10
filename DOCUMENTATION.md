@@ -17,7 +17,7 @@
 
 **Project Name:** Mini Project 2 - Graph Algorithms (Miniprojekt 2 - Algorytmy grafowe)
 
-**Purpose:** This project implements weighted graph data structures and implements shortest path finding algorithms (Dijkstra and Bellman-Ford) to find paths with minimum weight.
+**Purpose:** This project implements weighted graph data structures and implements shortest path finding algorithm (Dijkstra) to find paths with minimum weight.
 
 **Technology Stack:**
 - **Language:** C++20
@@ -27,7 +27,7 @@
 
 **Key Features:**
 - Two graph representations: Adjacency List and Adjacency Matrix
-- Two shortest path algorithms: Dijkstra and Bellman-Ford
+- Shortest path algorithm: Dijkstra (with priority queue optimization)
 - Random test data generation with configurable parameters
 - Interactive console menu for testing and algorithm verification
 - CSV-based graph file I/O
@@ -156,13 +156,11 @@ void removeEdge(int from, int to);
 
 **Algorithms:**
 ```cpp
-std::vector<int> dijkstra(int source);
+DijkstraResult dijkstra(int source);
 std::string dijkstraVerbose(int source);
-
-std::pair<bool, std::vector<int>> bellmanFord(int source);
-std::string bellmanFordVerbose(int source);
+std::string dijkstraPathVerbose(int source, int destination);
 ```
-- Returns shortest distances from source to all vertices
+- Returns shortest distances and paths from source to all vertices
 - Verbose versions return formatted string results
 
 **Utility Methods:**
@@ -181,7 +179,6 @@ void loadFromMatrix(const std::vector<std::vector<int>>& matrix);
 | Add Edge | O(1) | O(1) |
 | Remove Edge | O(E/V) | O(1) |
 | Dijkstra | O((V+E)logV) | O(V) |
-| Bellman-Ford | O(VE) | O(V) |
 | Storage | - | O(V+E) |
 
 **Where V = vertices, E = edges**
@@ -425,11 +422,10 @@ void addEdgeToGraph();
 ```cpp
 void testAlgorithms();
 void testDijkstra();
-void testBellmanFord();
 ```
 1. Request source vertex
-2. Run selected algorithm
-3. Display results (distances from source to all vertices)
+2. Run Dijkstra algorithm
+3. Display results (distances and paths from source to all vertices)
 
 **Generate Test Data:**
 ```cpp
@@ -483,13 +479,16 @@ std::vector<std::vector<Edge>> adjacency_list;
 // adjacency_list[u] contains all edges from vertex u
 ```
 
-### Distance Vector (Output)
+### Distance and Path Result (Output)
 
-**Dijkstra & Bellman-Ford Return:**
+**Dijkstra Return Structure:**
 ```cpp
-std::vector<int> distances;
-// distances[v] = shortest path weight from source to vertex v
-// distances[v] = INF means v is unreachable
+DijkstraResult {
+    std::vector<std::pair<int, std::vector<int>>> results;
+    // results[v].first = shortest path weight from source to vertex v
+    // results[v].second = path from source to vertex v
+    // INF means v is unreachable
+}
 ```
 
 ---
@@ -500,58 +499,121 @@ std::vector<int> distances;
 
 **Purpose:** Find shortest paths from a single source to all vertices in weighted graphs with **non-negative edge weights**.
 
-**Time Complexity:** O((V + E) log V) with binary heap
+**Time Complexity:** 
+- **GraphList (sparse):** O((V + E) log V) with binary heap
+- **GraphMatrix (dense):** O(V² log V) with binary heap
+- **Without heap:** O(V²) 
+
+#### Priority Queue Implementation
+
+This project uses a **min-heap priority queue** to efficiently extract vertices with minimum distance. The key components are:
+
+**HeapNode Structure:**
+```cpp
+struct HeapNode {
+    int distance;          // Current shortest distance
+    int vertex;            // Vertex identifier
+    std::vector<int> path; // Path from source to this vertex
+    
+    bool operator>(const HeapNode& other) const {
+        return distance > other.distance;  // Compare by distance
+    }
+};
+```
+
+**Priority Queue Declaration:**
+```cpp
+std::priority_queue<HeapNode, std::vector<HeapNode>, std::greater<HeapNode>> pq;
+```
+
+**How std::greater Works:**
+- `std::greater<HeapNode>` uses the `operator>` defined in HeapNode
+- Creates a **min-heap**: `pq.top()` returns element with **smallest distance**
+- Without `std::greater`, would be a max-heap (largest at top)
+- Acts as a **reordering predicate**: returns `true` if elements need to swap positions
 
 **Implementation in GraphList:**
 
 ```cpp
-std::vector<int> dijkstra(int source) {
-    // 1. Initialize distances
-    std::vector<int> distance(vertices, INF);
+DijkstraResult GraphList::dijkstra(int source) {
+    std::vector<std::pair<int, std::vector<int>>> results(vertices);
     std::vector<bool> visited(vertices, false);
-    distance[source] = 0;
     
-    // 2. Main loop: process vertices in order of distance
-    for (int count = 0; count < vertices - 1; count++) {
-        // Find unvisited vertex with minimum distance
-        int u = findMinDistanceVertex(distance, visited);
+    std::priority_queue<HeapNode, std::vector<HeapNode>, std::greater<HeapNode>> pq;
+    
+    // 1. Initialize
+    for (int i = 0; i < vertices; i++) {
+        results[i] = {INT_MAX, {}};
+    }
+    results[source] = {0, {source}};
+    pq.push({0, source, {source}});
+    
+    // 2. Main loop
+    while (!pq.empty()) {
+        HeapNode current = pq.top();  // O(1) - get minimum
+        pq.pop();                      // O(log V) - remove minimum
         
-        if (u == -1 || distance[u] == INF) break;
-        visited[u] = true;
+        int u = current.vertex;
         
-        // 3. Relax edges from u
+        if (visited[u]) continue;  // Skip if already processed
+        visited[u] = true;         // Mark processed
+        
+        // 3. Edge relaxation
         for (const auto& edge : adjacency_list[u]) {
             int v = edge.to;
             int weight = edge.weight;
+            int newDistance = current.distance + weight;
             
-            if (!visited[v] && distance[u] + weight < distance[v]) {
-                distance[v] = distance[u] + weight;
+            // Only consider unvisited vertices
+            if (!visited[v] && newDistance < results[v].first) {
+                results[v].first = newDistance;      // Update distance
+                results[v].second = current.path;    // Copy path
+                results[v].second.push_back(v);      // Append vertex
+                pq.push({newDistance, v, results[v].second});  // O(log V) - insert
             }
         }
     }
     
-    return distance;
+    return {results};
 }
 ```
 
 **Algorithm Steps:**
 
-1. **Initialization:**
-   - Set distance to source = 0
-   - Set distance to all others = INF
-   - Mark all vertices as unvisited
+1. **Initialization:** O(V)
+   - Set distance[source] = 0, all others = ∞
+   - Add source to priority queue
 
-2. **Main Loop (V-1 iterations):**
-   - Find unvisited vertex with minimum distance
-   - Mark it as visited
-   - For each unvisited neighbor:
-     - If path through current vertex is shorter, update distance
+2. **Main Loop:** O(V) iterations
+   - Extract minimum distance vertex: O(log V)
+   - Mark as visited
+   - For each unvisited neighbor: O(degree of vertex)
+     - If new path is shorter:
+       - Update distance: O(1)
+       - Add to queue: O(log V)
 
-3. **Termination:**
+3. **Termination:** When queue is empty
    - All reachable vertices have shortest distances
-   - Unreachable vertices remain INF
 
-**Example:**
+**Complexity Breakdown:**
+
+For **GraphList (sparse graphs):**
+- V iterations × O(log V) per extraction = O(V log V)
+- E total edge relaxations × O(log V) per insertion = O(E log V)
+- **Total:** O((V + E) log V)
+
+For **GraphMatrix (dense graphs):**
+- V iterations of main loop: O(V)
+- Each iteration checks all V vertices: O(V²)
+- Plus heap operations: O(log V)
+- **Total:** O(V² log V)
+
+Without binary heap (linear minimum search):
+- V iterations × O(V) to find minimum = O(V²)
+- E edge relaxations × O(1) update = O(E)
+- **Total:** O(V²) [heap helps mainly for sparse graphs]
+
+**Example Execution:**
 
 ```
 Graph:    0 --(5)-- 1
@@ -561,112 +623,37 @@ Graph:    0 --(5)-- 1
           2 --(4)-- 3
 
 Dijkstra from 0:
-Step 1: distance = [0, INF, INF, INF], visit 0
-Step 2: distance = [0, 5, 1, INF], visit 2
-Step 3: distance = [0, 5, 1, 5], visit 3
-Step 4: distance = [0, 5, 1, 5], visit 1
-Final: [0, 5, 1, 5]
+Initial:  results = [0,∞,∞,∞], pq = [(0,0)]
+
+Step 1:   Extract (0,0)
+          Relax: 0→1 (5), 0→2 (1)
+          results = [0,5,1,∞], pq = [(1,2), (5,1)]
+
+Step 2:   Extract (1,2)
+          Relax: 2→3 (5)
+          results = [0,5,1,5], pq = [(5,1), (5,3)]
+
+Step 3:   Extract (5,1)
+          Already processed, skip
+
+Step 4:   Extract (5,3)
+          No improvements
+          results = [0,5,1,5], pq = []
+
+Final Paths:
+  0→0: distance=0, path=[0]
+  0→1: distance=5, path=[0,1]
+  0→2: distance=1, path=[0,2]
+  0→3: distance=5, path=[0,2,3]
 ```
 
-**Limitations:**
+**Properties:**
+
+- ✅ Greedy algorithm: always processes closest unvisited vertex
+- ✅ Optimal solution for non-negative weights
 - ❌ Does not work with negative edge weights
-- ✅ Works with disconnected graphs (unreachable = INF)
-- ✅ Optimal for dense graphs
-
----
-
-### Bellman-Ford Algorithm
-
-**Purpose:** Find shortest paths from a single source, supporting **negative edge weights** and detecting **negative cycles**.
-
-**Time Complexity:** O(VE)
-
-**Implementation:**
-
-```cpp
-std::pair<bool, std::vector<int>> bellmanFord(int source) {
-    std::vector<int> distance(vertices, INF);
-    distance[source] = 0;
-    
-    // 1. Relax edges V-1 times
-    for (int i = 0; i < vertices - 1; i++) {
-        for (int u = 0; u < vertices; u++) {
-            if (distance[u] != INF) {
-                for (int v = 0; v < vertices; v++) {
-                    if (adjacency_matrix[u][v] != INF &&
-                        distance[u] + adjacency_matrix[u][v] < distance[v]) {
-                        distance[v] = distance[u] + adjacency_matrix[u][v];
-                    }
-                }
-            }
-        }
-    }
-    
-    // 2. Check for negative cycles
-    for (int u = 0; u < vertices; u++) {
-        if (distance[u] != INF) {
-            for (int v = 0; v < vertices; v++) {
-                if (adjacency_matrix[u][v] != INF &&
-                    distance[u] + adjacency_matrix[u][v] < distance[v]) {
-                    return {false, distance};  // Negative cycle!
-                }
-            }
-        }
-    }
-    
-    return {true, distance};
-}
-```
-
-**Algorithm Steps:**
-
-1. **Initialization:**
-   - distance[source] = 0
-   - distance[others] = INF
-
-2. **Edge Relaxation (V-1 times):**
-   - For each edge (u, v) with weight w:
-     - If distance[u] + w < distance[v]:
-       - distance[v] = distance[u] + w
-
-3. **Negative Cycle Detection:**
-   - Run relaxation one more time
-   - If any distance decreases, negative cycle exists
-   - Return failure
-
-**Example with Negative Weights:**
-
-```
-Graph:     0 --(4)-- 1
-           |         |
-          (-2)      (-2)
-           |         |
-           2 --(3)-- 3
-
-Bellman-Ford from 0:
-Iteration 1: [0, 4, -2, INF]
-Iteration 2: [0, 4, -2, 2]
-Iteration 3: [0, 4, -2, 2]
-Final: [0, 4, -2, 2]
-```
-
-**Example with Negative Cycle:**
-
-```
-Graph:     0 --1-- 1
-           |        |
-          1|       -3
-           |        |
-           2 --1--- 3
-           |___ -1__|
-           
-Bellman-Ford detects cycle and returns false
-```
-
-**Advantages Over Dijkstra:**
-- ✅ Supports negative edge weights
-- ✅ Detects negative cycles
-- ❌ Slower: O(VE) vs O((V+E)logV)
+- ✅ Works with disconnected graphs (unreachable = ∞)
+- ✅ Highly efficient with binary heap optimization
 
 ---
 
@@ -743,13 +730,6 @@ Graph loaded as Adjacency List.
 Select option: 3
 
 Enter source vertex: 0
-
-===== SELECT ALGORITHM =====
-1. Dijkstra's algorithm
-2. Bellman-Ford algorithm
-3. Back
-============================
-Select algorithm: 1
 
 Dijkstra from vertex 0:
   To 0: 0
@@ -928,21 +908,7 @@ gen.generateTestData(100);
 gen.generateGraphCSV(50, 75, 12345, "test_graph.csv");
 ```
 
-### Example 3: Detect Negative Cycle
-
-```cpp
-GraphMatrix g(3, false);
-g.addEdge(0, 1, 1);
-g.addEdge(1, 2, -3);
-g.addEdge(2, 0, 1);  // Creates cycle with total weight -1
-
-auto [has_solution, distances] = g.bellmanFord(0);
-if (!has_solution) {
-    std::cout << "Negative cycle detected!\n";
-}
-```
-
-### Example 4: Load and Analyze Graph
+### Example 3: Load and Analyze Graph
 
 ```cpp
 DataPrepare prep(0);
@@ -953,34 +919,6 @@ g.loadFromMatrix(matrix);
 
 std::cout << g.dijkstraVerbose(0);  // Get formatted results
 ```
-
----
-
-## Performance Characteristics
-
-### Dijkstra's Algorithm
-
-| Graph Type | Vertices | Edges | Time (ms) |
-|-----------|----------|-------|-----------|
-| List (sparse) | 100 | 150 | ~0.01 |
-| List (sparse) | 1000 | 1500 | ~0.1 |
-| Matrix (dense) | 100 | 5000 | ~0.02 |
-| Matrix (dense) | 1000 | 500000 | ~2.0 |
-
-### Bellman-Ford Algorithm
-
-| Graph Type | Vertices | Edges | Time (ms) |
-|-----------|----------|-------|-----------|
-| List (sparse) | 100 | 150 | ~1.0 |
-| List (sparse) | 1000 | 1500 | ~10 |
-| Matrix (dense) | 100 | 5000 | ~2.0 |
-| Matrix (dense) | 1000 | 500000 | ~20 |
-
-**Key Observations:**
-- Dijkstra significantly faster for sparse graphs
-- Bellman-Ford slower but handles negative weights
-- Matrix representation better for dense graphs
-- List representation better for sparse graphs
 
 ---
 
@@ -1000,22 +938,23 @@ std::cout << g.dijkstraVerbose(0);  // Get formatted results
 - Some vertices may be unreachable despite connectivity check
 - This shouldn't happen if generation succeeded
 
-### Issue: Negative cycle not detected
+### Issue: Dijkstra produces incorrect results
 
 **Cause:**
-- Only works with negative edge weights
-- Ensure edges have negative weights
-- Bellman-Ford algorithm correctly detects cycles
+- Dijkstra only works with non-negative edge weights
+- If graph has negative edges, results will be incorrect
+- Verify all edge weights are >= 0 before running Dijkstra
 
 ---
 
 ## Summary
 
 This project demonstrates:
-1. **Data Structure Design:** Two graph representations with tradeoffs
-2. **Algorithm Implementation:** Dijkstra and Bellman-Ford with full explanations
-3. **Software Engineering:** Modular design, error handling, user interface
-4. **Testing:** Automated test data generation with configurable parameters
+1. **Data Structure Design:** Two graph representations (adjacency list vs matrix) with tradeoffs
+2. **Algorithm Implementation:** Dijkstra's shortest path with priority queue optimization
+3. **Algorithm Analysis:** Complexity comparison and performance optimization techniques
+4. **Software Engineering:** Modular design, error handling, interactive user interface
+5. **Testing Infrastructure:** Automated test data generation with configurable graph parameters
 5. **C++20:** Modern C++ features (structured bindings, smart pointers, etc.)
 
 The documentation above provides complete understanding of architecture, algorithms, and usage patterns.

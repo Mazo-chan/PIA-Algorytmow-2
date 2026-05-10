@@ -10,6 +10,7 @@ struct HeapNode {
     int vertex;
     std::vector<int> path;
     
+    // For priority queue ordering (min-heap based on distance)
     bool operator>(const HeapNode& other) const {
         return distance > other.distance;
     }
@@ -28,6 +29,7 @@ void GraphList::addEdge(int from, int to, int weight) {
     if (from < 0 || from >= vertices || to < 0 || to >= vertices) {
         return;
     }
+    // Add edge to the adjacency list
     adjacency_list[from].push_back({to, weight});
     if (!is_directed) {
         adjacency_list[to].push_back({from, weight});
@@ -39,9 +41,12 @@ void GraphList::removeEdge(int from, int to) {
         return;
     }
     auto& edges = adjacency_list[from];
+    // Remove edge from 'from' to 'to' using remove-erase idiom
+    // remove_if will move the matching edge to the end of the vector, and then erase will remove it
     edges.erase(std::remove_if(edges.begin(), edges.end(),
         [to](const Edge& e) { return e.to == to; }), edges.end());
     
+    // If the graph is undirected, also remove the edge from 'to' to 'from'
     if (!is_directed) {
         auto& edges_to = adjacency_list[to];
         edges_to.erase(std::remove_if(edges_to.begin(), edges_to.end(),
@@ -53,6 +58,8 @@ DijkstraResult GraphList::dijkstra(int source) {
     std::vector<std::pair<int, std::vector<int>>> results(vertices);
     std::vector<bool> visited(vertices, false);
     
+    // true - we need to reshuffle, false - child is in the right place (obviously)
+    // normally std::less is used for max-heap
     std::priority_queue<HeapNode, std::vector<HeapNode>, std::greater<HeapNode>> pq;
     
     // Initialize all distances to INT_MAX
@@ -60,10 +67,13 @@ DijkstraResult GraphList::dijkstra(int source) {
         results[i] = {INT_MAX, {}};
     }
     
+    // Distance to source is 0
     results[source] = {0, {source}};
     pq.push({0, source, {source}});
     
+    // Body of Dijkstra's algorithm
     while (!pq.empty()) {
+        // Get the vertex with the smallest distance
         HeapNode current = pq.top();
         pq.pop();
         
@@ -74,16 +84,20 @@ DijkstraResult GraphList::dijkstra(int source) {
         }
         visited[u] = true;
         
+        // Explore neighbors
         for (const auto& edge : adjacency_list[u]) {
             int v = edge.to;
             int weight = edge.weight;
             int newDistance = current.distance + weight;
             
+            // If a shorter path to v is found
             if (!visited[v] && newDistance < results[v].first) {
+                // Update the distance and path for vertex v
                 results[v].first = newDistance;
                 results[v].second = current.path;
                 results[v].second.push_back(v);
                 
+                // Add the neighbor to the priority queue
                 pq.push({newDistance, v, results[v].second});
             }
         }
@@ -92,6 +106,7 @@ DijkstraResult GraphList::dijkstra(int source) {
     return {results};
 }
 
+// Verbose output for Dijkstra's algorithm
 std::string GraphList::dijkstraVerbose(int source) {
     std::ostringstream oss;
     auto result = dijkstra(source);
@@ -109,8 +124,10 @@ std::string GraphList::dijkstraVerbose(int source) {
     return oss.str();
 }
 
+// Verbose output for Dijkstra's algorithm with path
 std::string GraphList::dijkstraPathVerbose(int source, int destination) {
     std::ostringstream oss;
+    // Get the Dijkstra result for the source vertex
     auto result = dijkstra(source);
     
     if (result.results[destination].first == INT_MAX) {
@@ -139,10 +156,12 @@ int GraphList::getEdges() const {
     for (const auto& list : adjacency_list) {
         count += list.size();
     }
+    // Each edge is counted twice in an undirected graph
     return is_directed ? count : count / 2;
 }
 
 bool GraphList::isConnected(int from, int to) const {
+    // Check if vertices are valid
     if (from < 0 || from >= vertices || to < 0 || to >= vertices) {
         return false;
     }
@@ -167,6 +186,9 @@ void GraphList::print() const {
 }
 
 void GraphList::loadFromMatrix(const std::vector<std::vector<int>>& matrix) {
+    // Load edges from the adjacency matrix
+    // setDirected(true) to avoid adding duplicate edges for undirected graphs
+    // After loading, setDirected(false) to allow adding edges in both directions if needed
     setDirected(true);
     for (size_t i = 0; i < matrix.size(); i++) {
         for (size_t j = 0; j < matrix[i].size(); j++) {
