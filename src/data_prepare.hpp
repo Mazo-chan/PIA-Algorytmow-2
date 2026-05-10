@@ -25,7 +25,6 @@ public:
     // Generate and save adjacency matrix
     // NOTE: Default weights are positive (1-100) to prevent negative cycles
     // For Dijkstra testing, use default positive weights
-    // For Bellman-Ford testing with negative weights, specify min_weight < 0
     std::vector<std::vector<int>> generateAdjacencyMatrix(
         int vertices, 
         int density_percent, 
