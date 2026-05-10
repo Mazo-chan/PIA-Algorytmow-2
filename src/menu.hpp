@@ -6,6 +6,7 @@
 #include "data_prepare.hpp"
 #include "benchmark.hpp"
 #include <string>
+#include <memory>
 
 class Menu {
 private:

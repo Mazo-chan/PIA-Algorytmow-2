@@ -1,5 +1,6 @@
 #include "graph_list.hpp"
 #include <iostream>
+#include <climits>
 #include <queue>
 #include <algorithm>
 #include <sstream>
